@@ -9,19 +9,26 @@ object QuantileTester extends App {
   val OutlierSpread = 3E9
   val DefaultSpread = 50000.0
 
+  import breeze.stats.distributions._
+
   /**
    * Create a simulated set of latencies having certain characteristics, based on some average, and having a certain
    * fraction of outliers.
+   * Actually, use the F-Distribution for a smoother, more realistic distribution
    */
-  def makeLatencies(count: Int, outliersFrac: Double = 0.03, mean: Double = 100000.0): Seq[Double] = {
-    (0 until count).map { _ =>
-      if (Random.nextDouble < outliersFrac) {
-        // Outlier
-        OutlierMean + Random.nextDouble * OutlierSpread
-      } else {
-        Math.max(util.Random.nextGaussian * DefaultSpread + mean, 100)
-      }
-    }
+  // def makeLatencies(count: Int, outliersFrac: Double = 0.03, mean: Double = 100000.0): Seq[Double] = {
+  //   (0 until count).map { _ =>
+  //     if (Random.nextDouble < outliersFrac) {
+  //       // Outlier
+  //       OutlierMean + Random.nextDouble * OutlierSpread
+  //     } else {
+  //       Math.max(util.Random.nextGaussian * DefaultSpread + mean, 100)
+  //     }
+  //   }
+  // }
+  val f = new FDistribution(11, 1.3)
+  def makeLatencies(count: Int, mean: Double = 100000.0): Seq[Double] = {
+    f.samples.take(count).map(_*DefaultSpread + mean).toSeq
   }
 
   /**
